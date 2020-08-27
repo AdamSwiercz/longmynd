@@ -46,6 +46,7 @@
 #include "udp.h"
 #include "beep.h"
 #include "ts.h"
+#include "web/web.h"
 
 /* -------------------------------------------------------------------------------------------------- */
 /* ----------------- DEFINES ------------------------------------------------------------------------ */
@@ -78,6 +79,7 @@ static pthread_t thread_ts_parse;
 static pthread_t thread_ts;
 static pthread_t thread_i2c;
 static pthread_t thread_beep;
+static pthread_t thread_web;
 
 /* -------------------------------------------------------------------------------------------------- */
 /* ----------------- ROUTINES ----------------------------------------------------------------------- */
@@ -278,6 +280,9 @@ uint8_t process_command_line(int argc, char *argv[], longmynd_config_t *config) 
             case 'r':
                 config->ts_timeout=strtol(argv[param],NULL,10);
                 break;
+            case 'W':
+                config->web_port=(uint16_t)strtol(argv[param],NULL,10);
+                config->web_enabled=true;
           }
         }
         param++;
@@ -462,6 +467,7 @@ uint8_t process_command_line(int argc, char *argv[], longmynd_config_t *config) 
              if (config->polarisation_supply) printf("              Polarisation Voltage Supply enabled: %s\n", (config->polarisation_horizontal ? "H, 18V" : "V, 13V"));
              if (config->ts_timeout != -1) printf("              TS Timeout Period =%i milliseconds\n",config->ts_timeout);
              else                          printf("              TS Timeout Disabled.\n");
+             if (config->web_enabled) printf("              Web interface enabled: Port %d\n", config->web_port);
         }
     }
 
@@ -906,6 +912,25 @@ int main(int argc, char *argv[]) {
     else
     {
         pthread_setname_np(thread_beep, "Beep Audio");
+    }
+
+    thread_vars_t thread_vars_web = {
+        .main_err_ptr = &err,
+        .thread_err = ERROR_NONE,
+        .config = &longmynd_config,
+        .status = &longmynd_status
+    };
+
+    if(longmynd_config.web_enabled)
+    {
+        if(0 != pthread_create(&thread_web, NULL, loop_web, (void *)&thread_vars_web))
+        {
+            fprintf(stderr, "Error creating loop_web pthread\n");
+        }
+        else
+        {
+            pthread_setname_np(thread_web, "Web Server");
+        }
     }
 
     uint64_t last_status_sent_monotonic = 0;

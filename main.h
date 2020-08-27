@@ -94,6 +94,9 @@ typedef struct {
 
     int ts_timeout;
 
+    bool web_enabled;
+    int web_port;
+
     bool new;
     pthread_mutex_t mutex;
 } longmynd_config_t;

@@ -1,5 +1,6 @@
 BIN = longmynd
 SRC = main.c nim.c ftdi.c stv0910.c stv0910_utils.c stvvglna.c stvvglna_utils.c stv6120.c stv6120_utils.c ftdi_usb.c fifo.c udp.c beep.c ts.c
+SRC += web/web.c web/json.c
 OBJ = ${SRC:.c=.o}
 
 ifndef CC
@@ -7,7 +8,7 @@ CC = gcc
 endif
 
 # Build parallel
-MAKEFLAGS += -j$(shell nproc || printf 1)
+#MAKEFLAGS += -j$(shell nproc || printf 1)
 
 COPT = -O3 -march=native -mtune=native
 # Help detection for ARM SBCs, using devicetree
@@ -27,8 +28,13 @@ COPT += -funsafe-math-optimizations
 
 CFLAGS += -Wall -Wextra -Wpedantic -Wunused -DVERSION=\"${VER}\" -pthread -D_GNU_SOURCE
 LDFLAGS += -lusb-1.0 -lm -lasound
+LDFLAGS += -Wl,-Bstatic -lwebsockets -Wl,-Bdynamic
 
-all: ${BIN} fake_read
+LWS_DIR = ./web/libwebsockets/
+LWS_LIBSDIR = ${LWS_DIR}/build/include
+LWS_OBJDIR = ${LWS_DIR}/build/lib
+
+all: check-gitsubmodules check-lws ${BIN} fake_read
 
 debug: COPT = -Og
 debug: CFLAGS += -ggdb -fno-omit-frame-pointer
@@ -43,11 +49,11 @@ fake_read:
 
 $(BIN): ${OBJ}
 	@echo "  LD     "$@
-	@${CC} ${COPT} ${CFLAGS} -o $@ ${OBJ} ${LDFLAGS}
+	@${CC} ${COPT} ${CFLAGS} -o $@ ${OBJ} -L $(LWS_OBJDIR) ${LDFLAGS}
 
 %.o: %.c
 	@echo "  CC     "$<
-	@${CC} ${COPT} ${CFLAGS} -c -fPIC -o $@ $<
+	@${CC} ${COPT} ${CFLAGS} -I $(LWS_LIBSDIR) -c -fPIC -o $@ $<
 
 clean:
 	@rm -rf ${BIN} fake_read ${OBJ}
@@ -55,5 +61,22 @@ clean:
 tags:
 	@ctags *
 
-.PHONY: all clean
+check-gitsubmodules:
+	@if git submodule status | egrep -q '^[-]|^[+]' ; then \
+		echo "INFO: Need to [re]initialize git submodules"; \
+		git submodule update --init; \
+	fi
 
+check-lws:
+	@if [ ! -f "${LWS_OBJDIR}/libwebsockets.a" ]; then \
+		echo "INFO: Need to compile libwebsockets"; \
+		mkdir -p ${LWS_DIR}/build/; \
+		cd ${LWS_DIR}/build/; \
+		cmake ../ -DLWS_WITH_SSL=off \
+					-DLWS_WITH_SHARED=off \
+					-DLWS_WITHOUT_CLIENT=on \
+					-DLWS_WITHOUT_TESTAPPS=on; \
+		make; \
+	fi
+
+.PHONY: all clean check-gitsubmodules check-lws
