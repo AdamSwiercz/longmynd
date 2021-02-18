@@ -3,7 +3,6 @@ Hi all,
 First of all download longmynd from filipcrump site
 Configure it in the way provided by author and compile it.
 Download ffmpeg alternative from https://github.com/jocover/jetson-ffmpeg and compile it 
-------------------
 
 
 You may also find on the this repository my own compiled versions ready to use for Jetson Nano
@@ -23,18 +22,26 @@ If I have not this line of code, in the mean time I separated tuner (s1.sh) and 
 In my case local Jetson nano IP was 192.168.0.120 so adapt please for your Jetson Nano address.
 
 If you run:
+
+
+```
 sudo killall longmynd 
 for be sure
+```
 
 then
+
+```
 ./s1.sh
 ./s2.sh (you must change in it path accordin to yours)
-Note: in stream10.sh you should change IP to a good one (yours Jetson nano) 
+# Note: in stream10.sh you should change IP to a good one (yours Jetson nano) 
+```
 
 after
+```
 screen -list
-then you will see two proces: wideo and tuner
-
+# then you will see two proces: wideo and tuner
+```
 if you wish to kill these processes you need to run:
 screen -S wideo -X quit
 screen -S tuner -X quit
