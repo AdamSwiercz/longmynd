@@ -1,3 +1,52 @@
+Hi all,
+
+First of all download longmynd from filipcrump site
+Configure it in the way provided by author and compile it.
+Download ffmpeg alternative from https://github.com/jocover/jetson-ffmpeg and compile it 
+------------------
+
+
+You may also find on the this repository my own compiled versions ready to use for Jetson Nano
+I do not give cut my head (stake my live), but you may also needed some libraries,although I assume that it will not be needed.
+
+So the easy way is to copy to your fresh Nvidia Jetson nano installation of Ubuntu files and subdirectories located in user-local directory.
+I assume sudo will be available without a password.
+
+Well, in user-local directory you may find two files: s1.sh and s2.sh wchich should be executable.
+
+I would not treat it as a ready-made solution, but as a variation on the hardware and software capabilities of Jetson nano
+You have a better solution - show me and I'll take a look.
+
+For example, I'd like to see the gst-launch syntax in conjunction with the RTMP:// protocol, which includes the destination IP and port and it will not be UDP or RTSP://
+
+If I have not this line of code, in the mean time I separated tuner (s1.sh) and codec (s2.sh).
+In my case local Jetson nano IP was 192.168.0.120 so adapt please for your Jetson Nano address.
+
+If you run:
+sudo killall longmynd 
+for be sure
+
+then
+./s1.sh
+./s2.sh (you must change in it path accordin to yours)
+Note: in stream10.sh you should change IP to a good one (yours Jetson nano) 
+
+after
+screen -list
+then you will see two proces: wideo and tuner
+
+if you wish to kill these processes you need to run:
+screen -S wideo -X quit
+screen -S tuner -X quit
+
+Good Luck!
+and
+73
+
+
+----------------------
+
+Original from forked site:
 # Longmynd
 
 An Open Source Linux ATV Receiver.
